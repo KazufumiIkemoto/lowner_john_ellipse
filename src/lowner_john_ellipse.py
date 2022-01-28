@@ -254,7 +254,7 @@ def ellipse_from_boundary4(S):
     rts = np.roots(coeff)
     # take the unique root in the interval (-1, 1)
     rts = rts[(-1 < rts) & (rts < 1)]
-    theta = np.arcsin(np.real(rts[0]))
+    theta = np.arcsin(np.real(rts[np.argmin(np.abs(rts))]))
 
     # apply transformation D_theta
     D_mat = np.array([[np.cos(theta) ** -.5,
