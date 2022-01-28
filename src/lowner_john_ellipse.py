@@ -156,6 +156,10 @@ def ellipse_from_boundary5(S):
     # find parameters of ellipse given in the form
     # s0 * x ** 2 + s1 * y ** 2 + 2 * s2 * x * y + s3 * x + s4 * y + 1 = 0.
 
+    # shift points not to exist a (0, 0) point
+    c0 = np.mean(S, axis=0)
+    S = S - c0
+
     # build linear system of equations:
     x = S[:, 0]
     y = S[:, 1]
@@ -170,17 +174,17 @@ def ellipse_from_boundary5(S):
     sol = np.linalg.solve(A, -np.ones(S.shape[0]))
 
     # find ellipse center
-    c = np.linalg.solve(-2 * np.array([[sol[0], sol[2]],
-                                       [sol[2], sol[1]]]), sol[3:5])
+    c1 = np.linalg.solve(-2 * np.array([[sol[0], sol[2]],
+                                        [sol[2], sol[1]]]), sol[3:5])
 
     # solve for the matrix F (ellipse representation in center form)
     A = np.vstack([np.hstack([np.eye(3),
                               -np.array([[sol[0], sol[2], sol[1]]]).T]),
-                   np.array([c[0] ** 2, 2 * c[0] * c[1], c[1] ** 2, -1])])
+                   np.array([c1[0] ** 2, 2 * c1[0] * c1[1], c1[1] ** 2, -1])])
     s = np.linalg.solve(A, np.array([0, 0, 0, 1]))
     F = np.array([[s[0], s[1]], [s[1], s[2]]])
 
-    return center_form_to_geometric(F, c)
+    return center_form_to_geometric(F, c0 + c1)
 
 
 def ellipse_from_boundary4(S):
@@ -294,8 +298,16 @@ def ellipse_from_boundary3(S):
     # shift points
     Sc = S - c
 
+    # solve for the matrix F
+    A = Sc.T.dot(Sc)
+
+    # if A is close to singular, then the 3 points are colinear, in which
+    # case the ellipse is degenerate
+    if np.linalg.cond(A) >= 1 / np.finfo(float).eps:
+        return None
+
     # ellipse matrix (center form)
-    F = 1.5 * np.linalg.inv(Sc.T.dot(Sc))
+    F = 1.5 * np.linalg.inv(A)
 
     return center_form_to_geometric(F, c)
 
