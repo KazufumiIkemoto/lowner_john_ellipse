@@ -1,5 +1,10 @@
 import numpy as np
-from matplotlib import pyplot as plt
+import sys
+try:
+    from matplotlib import pyplot as plt
+except ModuleNotFoundError as err:
+    print("ModuleNotFoundError:", err, file=sys.stderr)
+    print("Plotting functions are disabled.", file=sys.stderr)
 
 
 ####################
