@@ -216,8 +216,13 @@ def ellipse_from_boundary4(S):
     angles = np.arctan2(Sc[:, 1], Sc[:, 0])
     S = S[np.argsort(-angles), :]
 
-    # find intersection point of diagonals
+    # if A is close to singular, then at least 3 points are colinear, in which
+    # case an ellipse is not unique, then we give up on this ellipse
     A = np.column_stack([S[2, :] - S[0, :], S[1, :] - S[3, :]])
+    if np.linalg.cond(A) >= 1 / np.finfo(float).eps:
+        return None
+
+    # find intersection point of diagonals
     b = S[1, :] - S[0, :]
     s = np.linalg.solve(A, b)
     diag_intersect = S[0, :] + s[0] * (S[2, :] - S[0, :])
